@@ -1,0 +1,104 @@
+experiment_name: "hypernetwork"
+
+trainer:
+  fast_dev_run: False
+  detect_anomaly: False
+  max_epochs: 150
+#  precision: '16-mixed'
+  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 0
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "mri_uda"
+      name:
+      tags:
+        - lee
+        - hyper
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+model:
+  class_path: brain_mri.pl_modules.DomainConditionedBrainAgeLitModule
+  init_args:
+    dom_clf_ckpt: #'/gpfs0/tamyr/users/doronser/ckpts/dom_clf_ixi/dom_clf_ixi_epoch=029.ckpt'
+    lr: 0.0001
+    w_decay: 0.1
+    target_domain: "ADNI"
+    use_dom_clf_feats: True
+    freeze_domain_encoder: False
+    msim_loss_weight: 2
+    sanity_check: False
+    # good target domains: ixi, NKI, Camcan, UCLA_LA5c, PPMI, ADNIOD
+
+    age_encoder:
+      class_path: brain_mri.models.brain_age.AgeEncoder
+      init_args:
+        kernel_size: 3
+        norm_layer: "InstanceNorm3d"
+        activation_layer: "GELU"
+        layers:
+          - 16
+          - 64
+          - 128
+          - 128
+
+    age_classifier:
+      # actual classifier is in the hypernetwork class
+      class_path: torch.nn.Identity
+
+    domain_encoder:
+      class_path: brain_mri.models.domain_classifier.GideonsEncoder
+
+    domain_classifier:
+      class_path: brain_mri.models.domain_classifier.GideonsMLP # mri_uda.models.heads.MLPHead
+      init_args:
+        in_features: 13440 #512
+        num_classes: 20 # 21 if training on all domains
+        dropout: 0.3
+
+
+    domain_conditioning_block:
+      class_path: brain_mri.models.brain_age_hypernet.BrainAgeHypernetwork
+      init_args:
+        in_features: 1024 #39424
+        hyper_in_size: 32 #32 13440
+        hyper_emb: 16
+        dropout: 0.1
+        activation_layer: "GELU" # LeakyReLU
+        init_method: 'uniform' # uniform normal
+        input_var: 44.6123 # input MRI var: 0.0847 domain embeddings var: 44.6123
+        normalize_weights: False
+        use_hyper:
+            - False
+            - False
+            - True
+            - True
+        layers:
+          - 1024
+          - 256
+          - 64
+
+data:
+#  data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
+  data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
+  target_domain: "ADNI" #"Oasis" #"AIBL"
+  ages:
+    - 0 #21
+    - 100 #80
+  batch_size: 32
+  num_workers: 8
+  pin_memory: False
+  balance_by: # age domain

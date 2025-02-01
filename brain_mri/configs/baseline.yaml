@@ -1,0 +1,68 @@
+experiment_name: "baseline_hyda"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 150
+#  precision: '16-mixed'
+  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 0
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "mri_uda"
+      name:
+      tags:
+        - lee
+        - baseline
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+model:
+  class_path: brain_mri.pl_modules.BrainAgeLitModule
+  init_args:
+    lr: 0.0001
+    w_decay: 0.05
+    model:
+      class_path: brain_mri.models.brain_age.Model
+      init_args:
+        dropout_probability: 0.3
+        kernel_size: 3
+        out_channels: 1
+        norm_layer: "InstanceNorm3d"
+        activation_layer: "GELU"
+        encoder_layers:
+          - 16
+          - 64
+          - 128
+          - 128
+        regressor_layers:
+          - 1024
+          - 256
+          - 64
+
+
+data:
+  class_path: brain_mri.data.MRIDataModule
+  init_args:
+#    data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
+    data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
+    target_domain: 'UCLA_LA5c' #'ixi'#'UCLA_LA5c' #"AIBL"
+    ages:
+      - 0
+      - 100
+    batch_size: 32
+    num_workers: 8
+    pin_memory: False
+    balance_by:
+

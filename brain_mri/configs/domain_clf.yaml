@@ -1,0 +1,57 @@
+experiment_name: "domain_classifier"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 50
+#  precision: '16-mixed'
+  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 0
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "mri_uda"
+      name:
+      tags:
+        - domain_clf
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+model:
+  class_path: brain_mri.pl_modules.DomainClassifier
+  init_args:
+    lr: 0.0001
+    w_decay: 0.1
+    alpha: 2
+    msim_on_embeddings: False
+    target_domain: 'ixi' #'UCLA_LA5c'
+    # good target domains: ixi, NKI, Camcan, UCLA_LA5c, PPMI, ADNIOD
+
+
+    encoder:
+      class_path: brain_mri.models.domain_classifier.GideonsEncoder
+
+    classifier:
+      class_path: brain_mri.models.domain_classifier.GideonsMLP
+      init_args:
+        in_features: 13440
+        num_classes: 20 # 21 if training on all domains
+        dropout: 0.3
+
+data:
+#  data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
+  data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
+  target_domain: 'ixi' #'ixi' #'UCLA_LA5c'
+  ages:
+    - 0 #21
+    - 100 #80
+  batch_size: 32
+  num_workers: 4
+  pin_memory: False
+  balance_by: 'domain'# age domain

@@ -1,0 +1,111 @@
+import os
+import numpy as np
+import lightning as pl
+import torchxrayvision as xrv
+import torchvision.transforms.v2 as tforms
+from typing import Optional
+from torch.utils.data import DataLoader
+from torchxrayvision.datasets import Merge_Dataset
+
+from .dataset import NIHDataset, CheXpertDataset, VinBDataset
+
+
+class CXRDataModule(pl.LightningDataModule):
+    def __init__(self,
+                 data_dir: str,
+                 target_domain: Optional[str] = None,
+                 batch_size: int = 32,
+                 num_workers: int = 4,
+                 ):
+        super().__init__()
+        self.data_dir = data_dir
+        self.target_domain = target_domain
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+
+        self.train_dataset = None
+        self.val_dataset = None
+        self.test_dataset = None
+
+    @property
+    def task_weights(self):
+        self.setup()
+        train_dl = self.train_dataloader()
+        train_labels = train_dl.dataset.labels
+        weights = np.nansum(train_labels, axis=0)
+        weights = weights.max() - weights + weights.mean()
+        weights = weights / weights.max()
+        return weights
+
+    def setup(self, stage=None):
+        # define transforms and augmentations
+        transform = tforms.Compose([xrv.datasets.XRayCenterCrop(),
+                                    xrv.datasets.XRayResizer(224)])
+        augment = tforms.Compose([lambda img: img.transpose(1,2,0), # hack: support np.array to torchvision.Image
+                                  tforms.ToImage(),
+                                  tforms.RandomHorizontalFlip(p=0.5),
+                                  tforms.RandomAffine(degrees=45, translate=(0.15, 0.15), scale=(0.9, 1.1))])
+
+
+        # load NIH, CheXphoto and VinBD datasets
+        nih_train = NIHDataset(imgpath=os.path.join(self.data_dir, 'nih-chest-xrays/images'),
+                                csvpath=os.path.join(self.data_dir, 'nih-chest-xrays/train.csv'),
+                                transform=transform, data_aug=augment)
+        nih_val = NIHDataset(imgpath=os.path.join(self.data_dir, 'nih-chest-xrays/images'),
+                              csvpath=os.path.join(self.data_dir, 'nih-chest-xrays/val.csv'),
+                              transform=transform, data_aug=augment)
+
+        chex_train = CheXpertDataset(imgpath=os.path.join(self.data_dir, 'chexpert/'),
+                                  csvpath=os.path.join(self.data_dir, 'chexpert/train.csv'),
+                                  transform=transform, data_aug=augment)
+        chex_val = CheXpertDataset(imgpath=os.path.join(self.data_dir, 'chexpert/'),
+                                csvpath=os.path.join(self.data_dir, 'chexpert/train_val.csv'),
+                                transform=transform, data_aug=augment)
+
+        vind_train = VinBDataset(imgpath=os.path.join(self.data_dir, 'vinbd/png/train/'),
+                                  csvpath=os.path.join(self.data_dir, 'vinbd/train.csv'),
+                                  transform=transform, data_aug=augment)
+        vinb_val = VinBDataset(imgpath=os.path.join(self.data_dir, 'vinbd/png/train/'),
+                                csvpath=os.path.join(self.data_dir, 'vinbd/val.csv'),
+                                transform=transform, data_aug=augment)
+
+        # label alignment
+        for ds in [nih_train, chex_train, vind_train, nih_val, chex_val, vinb_val]:
+            xrv.datasets.relabel_dataset(xrv.models.DenseNet.targets, ds, silent=True)
+
+
+        # merge based on target domain
+        if self.target_domain is None:
+            train_ds = Merge_Dataset([nih_train, chex_train, vind_train])
+            val_ds = Merge_Dataset([nih_val, chex_val, vinb_val])
+            test_ds = None
+        elif self.target_domain == 'NIH':
+            train_ds = Merge_Dataset([chex_train, vind_train])
+            val_ds = Merge_Dataset([chex_val, vinb_val])
+            test_ds = nih_val
+        elif self.target_domain == 'CheXpert':
+            train_ds = Merge_Dataset([nih_train, vind_train])
+            val_ds = Merge_Dataset([nih_val, vinb_val])
+            test_ds = chex_val
+        elif self.target_domain == 'VinBrain':
+            train_ds = Merge_Dataset([nih_train, chex_train])
+            val_ds = Merge_Dataset([nih_val, chex_val])
+            test_ds = vinb_val
+        else:
+            raise ValueError(f"Target domain {self.target_domain} not supported")
+
+        self.train_dataset = train_ds
+        self.val_dataset = val_ds
+        self.test_dataset = test_ds
+
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+
+    def test_dataloader(self):
+        if self.test_dataset is None:
+            return None
+        else:
+            return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)

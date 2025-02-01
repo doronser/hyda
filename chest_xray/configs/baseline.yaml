@@ -1,0 +1,54 @@
+experiment_name: "baseline_hyda"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 150
+  precision: '16'
+#  precision: '16-mixed'
+#  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 3
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "cxr_uda"
+      name:
+      tags:
+        - baseline
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+
+model:
+  class_path: chest_xray.pl_modules.CXRLitModule
+  init_args:
+    lr: 0.001
+    min_lr:
+    w_decay: 0.05
+    task_weights:
+    model:
+      class_path: chest_xray.models.CXRDenseNet
+      init_args:
+        imagenet_pretrained: True
+
+
+
+data:
+  class_path: chest_xray.data.CXRDataModule
+  init_args:
+#    data_dir: "/media/rrtammyfs/labDatabase/chest_xray/"
+    data_dir: "/raid/data/shared_datasets/chest_xray/"
+    target_domain: # NIH CheXpert VinBrain
+    batch_size: 32
+    num_workers: 16
