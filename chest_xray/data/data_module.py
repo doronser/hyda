@@ -2,7 +2,8 @@ import os
 import numpy as np
 import lightning as pl
 import torchxrayvision as xrv
-import torchvision.transforms.v2 as tforms
+# import torchvision.transforms.v2 as tforms
+import torchvision.transforms as tforms
 from typing import Optional
 from torch.utils.data import DataLoader
 from torchxrayvision.datasets import Merge_Dataset
@@ -13,12 +14,14 @@ from .dataset import NIHDataset, CheXpertDataset, VinBDataset
 class CXRDataModule(pl.LightningDataModule):
     def __init__(self,
                  data_dir: str,
+                 unique_patients: bool = False,
                  target_domain: Optional[str] = None,
                  batch_size: int = 32,
                  num_workers: int = 4,
                  ):
         super().__init__()
         self.data_dir = data_dir
+        self.unique_patients = unique_patients
         self.target_domain = target_domain
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -41,37 +44,44 @@ class CXRDataModule(pl.LightningDataModule):
         # define transforms and augmentations
         transform = tforms.Compose([xrv.datasets.XRayCenterCrop(),
                                     xrv.datasets.XRayResizer(224)])
-        augment = tforms.Compose([lambda img: img.transpose(1,2,0), # hack: support np.array to torchvision.Image
-                                  tforms.ToImage(),
-                                  tforms.RandomHorizontalFlip(p=0.5),
-                                  tforms.RandomAffine(degrees=45, translate=(0.15, 0.15), scale=(0.9, 1.1))])
+        # augment = tforms.Compose([lambda img: img.transpose(1,2,0), # hack: support np.array to torchvision.Image
+        #                           tforms.ToImage(),
+        #                           tforms.RandomHorizontalFlip(p=0.5),
+        #                           tforms.RandomAffine(degrees=45, translate=(0.15, 0.15), scale=(0.9, 1.1))])
+        augment = tforms.Compose([xrv.datasets.ToPILImage(),
+                                  # tforms.RandomHorizontalFlip(p=0.5),
+                                  tforms.RandomAffine(degrees=45, translate=(0.15, 0.15), scale=(0.9, 1.1)),
+                                  tforms.ToTensor()
+                                  ])
 
 
         # load NIH, CheXphoto and VinBD datasets
         nih_train = NIHDataset(imgpath=os.path.join(self.data_dir, 'nih-chest-xrays/images'),
                                 csvpath=os.path.join(self.data_dir, 'nih-chest-xrays/train.csv'),
-                                transform=transform, data_aug=augment)
+                                transform=transform, data_aug=augment, unique_patients=self.unique_patients)
         nih_val = NIHDataset(imgpath=os.path.join(self.data_dir, 'nih-chest-xrays/images'),
                               csvpath=os.path.join(self.data_dir, 'nih-chest-xrays/val.csv'),
-                              transform=transform, data_aug=augment)
+                              transform=transform, data_aug=None, unique_patients=self.unique_patients)
 
         chex_train = CheXpertDataset(imgpath=os.path.join(self.data_dir, 'chexpert/'),
                                   csvpath=os.path.join(self.data_dir, 'chexpert/train.csv'),
-                                  transform=transform, data_aug=augment)
+                                  transform=transform, data_aug=augment, unique_patients=self.unique_patients)
         chex_val = CheXpertDataset(imgpath=os.path.join(self.data_dir, 'chexpert/'),
                                 csvpath=os.path.join(self.data_dir, 'chexpert/train_val.csv'),
-                                transform=transform, data_aug=augment)
+                                transform=transform, data_aug=None, unique_patients=self.unique_patients)
 
         vind_train = VinBDataset(imgpath=os.path.join(self.data_dir, 'vinbd/png/train/'),
                                   csvpath=os.path.join(self.data_dir, 'vinbd/train.csv'),
                                   transform=transform, data_aug=augment)
         vinb_val = VinBDataset(imgpath=os.path.join(self.data_dir, 'vinbd/png/train/'),
                                 csvpath=os.path.join(self.data_dir, 'vinbd/val.csv'),
-                                transform=transform, data_aug=augment)
+                                transform=transform, data_aug=None)
 
         # label alignment
         for ds in [nih_train, chex_train, vind_train, nih_val, chex_val, vinb_val]:
-            xrv.datasets.relabel_dataset(xrv.models.DenseNet.targets, ds, silent=True)
+            # xrv.datasets.relabel_dataset(xrv.models.DenseNet.targets, ds, silent=True)
+            subset_labels = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Effusion', 'Pneumothorax']
+            xrv.datasets.relabel_dataset(subset_labels, ds, silent=False)
 
 
         # merge based on target domain
@@ -99,7 +109,7 @@ class CXRDataModule(pl.LightningDataModule):
         self.test_dataset = test_ds
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)

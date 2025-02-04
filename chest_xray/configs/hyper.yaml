@@ -1,4 +1,4 @@
-experiment_name: "baseline_hyda"
+experiment_name: "cxr_hyda"
 
 trainer:
   fast_dev_run: False
@@ -14,7 +14,7 @@ trainer:
       project: "cxr_uda"
       name:
       tags:
-        - baseline
+        - hyper
   callbacks:
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
@@ -36,11 +36,15 @@ chkpt_callback:
 
 
 model:
-  class_path: chest_xray.pl_modules.CXRLitModule
+  class_path: chest_xray.pl_modules.DomainConditionedCXRLitModule
   init_args:
     lr: 0.001
     min_lr: 1e-6
     w_decay: 0.05 #  0.05
+
+    # primary network
+    imagenet_pretrained: True
+    num_classes: 5
     task_weights: # calculated from the training set
       - 0.575
       - 0.841
@@ -79,11 +83,27 @@ model:
 #      - 0.903
 #      - 0.231
 #      - 0.904
-    model:
-      class_path: chest_xray.models.CXRDenseNet
+
+    # domain branch
+    target_domain: NIH # NIH CheXpert VinBrain
+    dom_clf_ckpt: '/raid/data/users/doronser/ckpts/cxr_dom_clf_nih/cxr_dom_clf_nih_epoch=035.ckpt'#
+    domain_encoder:
+      class_path: chest_xray.models.domain_classifier.NaiveEncoder
       init_args:
-        imagenet_pretrained: True
-        num_classes: 5
+        activation: "ReLU"
+        norm_layer: "BatchNorm2d"
+
+    domain_classifier:
+      class_path: chest_xray.models.domain_classifier.NaiveClassifier
+      init_args:
+        num_classes: 3
+
+    # hypernetwork
+    hyper_in_size: 64
+    hyper_emb: 32
+    init_method: 'uniform' # uniform normal
+    input_var:  1 # input CXR var: ??? domain embeddings var: ???
+
 
 
 
@@ -93,6 +113,6 @@ data:
 #    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
     data_dir: "/raid/data/shared_datasets/chest_xray/"
     unique_patients: False
-    target_domain: # NIH CheXpert VinBrain
+    target_domain: NIH # NIH CheXpert VinBrain
     batch_size: 32
     num_workers: 16

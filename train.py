@@ -29,7 +29,12 @@ class LoggerSaveConfigCallback(SaveConfigCallback):
 class CLI(LightningCLI):
     def add_default_arguments_to_parser(self, parser: LightningArgumentParser):
         parser.add_argument('--seed_everything', type=int, help='Seed for reproducibility')
-        parser.link_arguments("data.task_weights", "model.task_weights", apply_on="instantiate")
+
+        # # Define data.task_weights as a class group
+        # parser.add_class_arguments(LightningDataModule, "data")
+        # parser.add_class_arguments(LightningModule, "model")
+        #
+        # parser.link_arguments("data.task_weights", "model.task_weights", apply_on="instantiate")
 
         parser.add_argument("experiment_name", type=str, help="Name of the experiment")
         parser.add_argument('--trainer.logger.init_args.name', type=str, help='W&B experiment name')

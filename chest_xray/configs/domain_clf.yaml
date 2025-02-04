@@ -1,0 +1,56 @@
+experiment_name: "cxr_dom_clf"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 50
+  precision: '16-mixed'
+#  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 2
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "cxr_uda"
+      name:
+      tags:
+        - domain_clf
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+model:
+  class_path: chest_xray.pl_modules.DomainClassifier
+  init_args:
+    lr: 0.0001
+    w_decay: 0.05
+    alpha: 2
+    msim_on_embeddings: True
+    target_domain: # NIH CheXpert VinBrain
+
+
+    encoder:
+      class_path: chest_xray.models.domain_classifier.NaiveEncoder
+      init_args:
+        activation: "ReLU"
+        norm_layer: "BatchNorm2d"
+
+    classifier:
+      class_path: chest_xray.models.domain_classifier.NaiveClassifier
+      init_args:
+        num_classes: 3
+
+
+data:
+  class_path: chest_xray.data.CXRDataModule
+  init_args:
+#    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
+    data_dir: "/raid/data/shared_datasets/chest_xray/"
+    unique_patients: False
+    target_domain: # NIH CheXpert VinBrain
+    batch_size: 32
+    num_workers: 16
