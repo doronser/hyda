@@ -10,6 +10,7 @@ class CXRDenseNet(nn.Module):
     def __init__(self, imagenet_pretrained=True, num_classes=18):
         super().__init__()
         self.imagenet_pretrained = imagenet_pretrained
+        self.num_classes = num_classes
         if self.imagenet_pretrained:
             # load imagenet pre-trained densenet121, replace input and output layers to suite CXR classification task
             self.model = torchvision.models.densenet121(weights='IMAGENET1K_V1')

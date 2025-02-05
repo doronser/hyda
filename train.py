@@ -16,7 +16,7 @@ class SaveConfigWandB(SaveConfigCallback):
     def save_config(self, trainer: Trainer, pl_module: LightningModule, stage: str) -> None:
         if trainer.logger is not None:
             logger : WandbLogger = trainer.logger
-            logger.experiment.config.update(dict(data=vars(self.config.data), model=namespace_to_dict(self.config.model)))
+            logger.experiment.config.update(dict(data=namespace_to_dict(self.config.data), model=namespace_to_dict(self.config.model)))
 
 class LoggerSaveConfigCallback(SaveConfigCallback):
     def __init__( self, *args,  **kwargs) -> None:

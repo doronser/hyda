@@ -34,7 +34,13 @@ class CXRLitModule(pl.LightningModule):
         self.w_decay = w_decay
         self.example_input_array = torch.Tensor(1, 1, 224, 224)
         self.criterion = MultiLabelClassificationLoss(weights=task_weights)
-        self.pathologies = xrv.models.DenseNet.targets
+        if self.model.num_classes == 5:  # intersection of all pathologies
+            self.pathologies = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Effusion', 'Pneumothorax']
+        elif self.model.num_classes == 18:  # union of all pathologies
+            self.pathologies = xrv.models.DenseNet.targets
+        else:
+            raise ValueError('num_classes must be either 5 or 18 (intersection/union of all pathologies)')
+
 
         # aggregators for AUC calculation
         self.train_logits = []

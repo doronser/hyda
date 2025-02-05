@@ -58,7 +58,7 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
 
         #save class list
         if self.num_classes == 5: # intersection of all pathologies
-            self.pathologies = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
+            self.pathologies = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Effusion', 'Pneumothorax']
         elif self.num_classes == 18: # union of all pathologies
             self.pathologies = DenseNet.targets
         else:
@@ -146,7 +146,7 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
 
     def _step(self, batch):
         xray = batch['img']
-        domains = batch['domain']
+        domains = self.gt2train_ids[batch['domain']]
         labels = batch['lab']
 
         logits, dom_logits, h_emb, h_out = self(xray)
@@ -200,8 +200,8 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
             self.train_logits.clear()
             self.train_labels.clear()
         else:
-            self.train_logits.append(logits)
-            self.train_labels.append(labels)
+            self.train_logits.append(logits.detach())
+            self.train_labels.append(labels.detach())
 
     def on_train_epoch_end(self):
         # lr schedulers update
@@ -235,11 +235,11 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
             domain_loss = domain_loss + (msim_loss + aux_msim_loss) * self.msim_loss_weight
         self.log('val_domain_loss', domain_loss, prog_bar=True)
 
-        self.val_logits.append(logits)
-        self.val_labels.append(labels)
+        self.val_logits.append(logits.detach())
+        self.val_labels.append(labels.detach())
         if self.current_epoch % 10 == 0:
-            self.val_domain_preds.append(dom_logits.argmax(1))
-            self.val_domain_labels.append(domains)
+            self.val_domain_preds.append(dom_logits.argmax(1).detach())
+            self.val_domain_labels.append(domains.detach())
 
 
     def on_validation_epoch_end(self):
