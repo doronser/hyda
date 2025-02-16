@@ -7,7 +7,7 @@ trainer:
 #  precision: 'bf16-mixed'
   accelerator: "gpu"
   devices:
-    - 2
+    - 1
   logger:
     class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
@@ -42,7 +42,7 @@ model:
     classifier:
       class_path: chest_xray.models.domain_classifier.NaiveClassifier
       init_args:
-        num_classes: 3
+        num_classes: 2
 
 
 data:
@@ -53,4 +53,4 @@ data:
     unique_patients: False
     target_domain: # NIH CheXpert VinBrain
     batch_size: 32
-    num_workers: 16
+    num_workers: 8

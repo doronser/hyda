@@ -26,3 +26,13 @@ class CXRDenseNet(nn.Module):
         out = torch.flatten(out, 1)
         out = self.model.classifier(out)
         return out
+
+    def get_features(self, x):
+        features = self.model.features(x)
+        out = F.relu(features, inplace=True)
+        out = F.adaptive_avg_pool2d(out, (1, 1))
+        out = torch.flatten(out, 1)
+        return out
+
+    def classifier(self, x):
+        return self.model.classifier(x)

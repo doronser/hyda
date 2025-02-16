@@ -26,17 +26,6 @@ class MultiLabelClassificationLoss(nn.Module):
                 total_loss += loss
         return total_loss
 
-        # # copilot attempt at vectorization
-        # valid_mask = ~torch.isnan(labels)
-        # task_labels = torch.where(valid_mask, labels, torch.zeros_like(labels))
-        # task_logits = torch.where(valid_mask, logits, torch.zeros_like(logits))
-        # loss = self.criterion(task_logits, task_labels)
-        #
-        # if hasattr(self, 'weights'):
-        #     loss = loss * self.weights
-        #
-        # return loss
-
 class MultiLabelClassificationLoss2(nn.Module):
     """Weighted Binary Cross Entropy Loss for multi-label classification"""
     def __init__(self, weights=None):

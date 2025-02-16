@@ -45,13 +45,15 @@ model:
         dropout: 0.3
 
 data:
-#  data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
-  data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
-  target_domain: 'ixi' #'ixi' #'UCLA_LA5c'
-  ages:
-    - 0 #21
-    - 100 #80
-  batch_size: 32
-  num_workers: 4
-  pin_memory: False
-  balance_by: 'domain'# age domain
+  class_path: brain_mri.data.MRIDataModule
+  init_args:
+  #  data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
+    data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
+    target_domain: 'ixi' #'ixi' #'UCLA_LA5c'
+    ages:
+      - 0 #21
+      - 100 #80
+    batch_size: 32
+    num_workers: 4
+    pin_memory: False
+    balance_by: 'domain'# age domain

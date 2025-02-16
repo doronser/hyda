@@ -186,10 +186,11 @@ class DomainConditionedBrainAgeLitModule(pl.LightningModule):
                 aux_hard_pairs = self.miner(h_emb, domain)
                 aux_msim_loss = self.aux_msim_loss(h_emb, domain, aux_hard_pairs)
                 domain_loss = domain_loss + (msim_loss + aux_msim_loss) * self.msim_loss_weight
+            self.log('train_domain_loss', domain_loss, prog_bar=True)
+
             dom_opt.zero_grad()
             self.manual_backward(domain_loss)
             dom_opt.step()
-            self.log('train_domain_loss', domain_loss, prog_bar=True)
 
         # log metrics
         for metric_name, metric in [("mae", self.train_mae), ("r", self.train_r)]:
@@ -242,8 +243,8 @@ class DomainConditionedBrainAgeLitModule(pl.LightningModule):
             self.log(f"val_{metric_name}", metric, prog_bar=metric_name == "mae", on_step=True, on_epoch=False)
         if not self.sanity_check:
             self.val_acc(domain_logits, domain)
-            self.val_domain_labels.append(domain)
-            self.val_domain_preds.append(domain_logits.argmax(1))
+            self.val_domain_labels.append(domain.detach())
+            self.val_domain_preds.append(domain_logits.argmax(1).detach())
             self.log("val_acc", self.val_acc)
 
     def on_validation_epoch_end(self):
@@ -265,8 +266,8 @@ class DomainConditionedBrainAgeLitModule(pl.LightningModule):
 
     def test_step(self, batch):
         age_predicted, _, age, _, _, _ = self._step(batch)
-        self.test_age_gts.append(age.squeeze(1).cpu())
-        self.test_age_preds.append(age_predicted.squeeze(1).cpu())
+        self.test_age_gts.append(age.squeeze(1).detach().cpu())
+        self.test_age_preds.append(age_predicted.squeeze(1).detach().cpu())
 
     def on_test_epoch_end(self):
         print([x.shape for x in self.test_age_gts])

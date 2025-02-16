@@ -39,6 +39,7 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
                  min_lr: float=1e-6,
                  w_decay: float=0,
                  msim_loss_weight: int=0,
+                 use_aux_msim_loss: bool=False,
                  sanity_check = False):
         """
         :param lr: Adam learning rate
@@ -67,12 +68,15 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
 
         # losses
         self.criterion = MultiLabelClassificationLoss(weights=task_weights)
-        self.domain_loss = torch.nn.CrossEntropyLoss()
+        self.domain_loss = torch.nn.CrossEntropyLoss() # TODO: add ignore index=-1
+
         self.msim_loss_weight = msim_loss_weight
+        self.use_aux_msim_loss = use_aux_msim_loss
         if self.msim_loss_weight > 0:
             self.miner = miners.MultiSimilarityMiner(epsilon=0.1)
             self.msim_loss = losses.MultiSimilarityLoss(alpha=2, beta=50)
-            self.aux_msim_loss = losses.MultiSimilarityLoss(alpha=2, beta=50)
+            if self.use_aux_msim_loss:
+                self.aux_msim_loss = losses.MultiSimilarityLoss(alpha=2, beta=50)
 
 
         # map GT classes to training classes
@@ -161,12 +165,12 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
         cxr_loss = self.criterion(logits, labels)
 
         self.log('train_loss', cxr_loss, prog_bar=True)
-        if len(h_out) > 0:
+        if len(h_out) > 0 and self.current_epoch > 1:
             weight_decay_factor = cxr_opt.param_groups[0]['weight_decay']
             hyper_l2reg = weight_decay_factor * sum(
                 [torch.linalg.vector_norm(w.flatten(1), dim=1) for w in h_out if w is not None]).mean()
             self.log("hyper_l2reg", hyper_l2reg, batch_size=logits.shape[0])
-            cxr_loss = cxr_loss + hyper_l2reg
+            cxr_loss = cxr_loss #+ hyper_l2reg
 
         cxr_opt.zero_grad()
         self.manual_backward(cxr_loss, retain_graph=True)
@@ -180,14 +184,17 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
             msim_loss = self.msim_loss(dom_logits, domains, hard_pairs)
 
             # calculate auxillary msim loss on hyper embedding
-            aux_hard_pairs = self.miner(h_emb, domains)
-            aux_msim_loss = self.aux_msim_loss(h_emb, domains, aux_hard_pairs)
-            domain_loss = domain_loss + (msim_loss + aux_msim_loss) * self.msim_loss_weight
+            if self.use_aux_msim_loss:
+                aux_hard_pairs = self.miner(h_emb, domains)
+                aux_msim_loss = self.aux_msim_loss(h_emb, domains, aux_hard_pairs)
+                msim_loss = msim_loss + aux_msim_loss
+            domain_loss = domain_loss + msim_loss * self.msim_loss_weight
+            self.log('train_msim_loss', msim_loss)
+        self.log('train_domain_loss', domain_loss, prog_bar=True)
 
         dom_opt.zero_grad()
         self.manual_backward(domain_loss)
         dom_opt.step()
-        self.log('train_domain_loss', domain_loss, prog_bar=True)
 
         # We don't want to store the entire training set logits and labels in memory,
         # so we log AUC every 200 batches instead
@@ -230,9 +237,11 @@ class DomainConditionedCXRLitModule(HyDenseNet, pl.LightningModule):
             msim_loss = self.msim_loss(dom_logits, domains, hard_pairs)
 
             # calculate auxillary msim loss on hyper embedding
-            aux_hard_pairs = self.miner(h_emb, domains)
-            aux_msim_loss = self.aux_msim_loss(h_emb, domains, aux_hard_pairs)
-            domain_loss = domain_loss + (msim_loss + aux_msim_loss) * self.msim_loss_weight
+            if self.use_aux_msim_loss:
+                aux_hard_pairs = self.miner(h_emb, domains)
+                aux_msim_loss = self.aux_msim_loss(h_emb, domains, aux_hard_pairs)
+                msim_loss = msim_loss + aux_msim_loss
+            domain_loss = domain_loss + msim_loss * self.msim_loss_weight
         self.log('val_domain_loss', domain_loss, prog_bar=True)
 
         self.val_logits.append(logits.detach())

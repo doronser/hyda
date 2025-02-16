@@ -8,7 +8,7 @@ trainer:
   precision: 'bf16-mixed'
   accelerator: "gpu"
   devices:
-    - 3
+    - 0
   logger:
     class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
