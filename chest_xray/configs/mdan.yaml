@@ -1,0 +1,68 @@
+experiment_name: "mdan"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 150
+  precision: '16-mixed'
+#  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 1
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "cxr_uda"
+      name:
+      tags:
+        - mdan
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: "val_loss"
+        patience: 10
+        mode: "min"
+        verbose: True
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+
+model:
+  class_path: chest_xray.pl_modules.CXRMDAN
+  init_args:
+    target_domain: VinBrain # NIH CheXpert VinBrain
+    lr: 0.001
+    min_lr: 1e-6
+    w_decay: 0.05 #  0.05
+    task_weights: # calculated from the training set
+      - 0.733 # Atelectasis
+      - 0.813 # Cardiomegaly
+      - 1.000 # Consolidation
+      - 0.388 # Effusion
+      - 0.956 # Pneumothorax
+    model:
+      class_path: chest_xray.models.CXRDenseNet
+      init_args:
+        imagenet_pretrained: True
+        num_classes: 5
+
+
+
+data:
+  class_path: chest_xray.data.CXRDataModule
+  init_args:
+#    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
+    data_dir: "/raid/data/shared_datasets/chest_xray/"
+    unique_patients: False
+    target_domain: VinBrain # NIH CheXpert VinBrain
+    use_sampler: True
+    batch_size: 32
+    num_workers: 16

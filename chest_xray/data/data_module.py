@@ -8,7 +8,8 @@ from typing import Optional
 from torch.utils.data import DataLoader
 from torchxrayvision.datasets import Merge_Dataset
 
-from .dataset import NIHDataset, CheXpertDataset, VinBDataset
+from .dataset import NIHDataset, CheXpertDataset, VinBDataset, DOMAIN_ENUM
+from .sampler import DomainSampler
 
 
 class CXRDataModule(pl.LightningDataModule):
@@ -18,6 +19,7 @@ class CXRDataModule(pl.LightningDataModule):
                  target_domain: Optional[str] = None,
                  batch_size: int = 32,
                  num_workers: int = 4,
+                 use_sampler: bool = False,
                  ):
         super().__init__()
         self.data_dir = data_dir
@@ -25,6 +27,7 @@ class CXRDataModule(pl.LightningDataModule):
         self.target_domain = target_domain
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.use_sampler = use_sampler
 
         self.train_dataset = None
         self.val_dataset = None
@@ -85,7 +88,7 @@ class CXRDataModule(pl.LightningDataModule):
 
 
         # merge based on target domain
-        if self.target_domain is None:
+        if self.target_domain is None or self.use_sampler:
             train_ds = Merge_Dataset([nih_train, chex_train, vind_train])
             val_ds = Merge_Dataset([nih_val, chex_val, vinb_val])
             test_ds = None
@@ -109,7 +112,12 @@ class CXRDataModule(pl.LightningDataModule):
         self.test_dataset = test_ds
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
+        if self.use_sampler:
+            # guarantee half of each batch is from the target domain
+            sampler = DomainSampler(self.train_dataset.which_dataset, DOMAIN_ENUM[self.target_domain], self.batch_size)
+            return DataLoader(self.train_dataset,num_workers=self.num_workers, batch_sampler=sampler)
+        else:
+            return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
