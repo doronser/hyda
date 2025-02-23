@@ -146,3 +146,17 @@ class HyperGroupedConv(nn.Module):
         else:
             out = out.view(self.batch_size, -1,  out.shape[-3], out.shape[-2], out.shape[-1])
         return out, (w,b)
+
+
+class GradReverse(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, alpha=1.0):
+        ctx.alpha = alpha
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output.neg() * ctx.alpha, None # return same num of inputs to forward
+
+def grad_reverse(x, alpha=1.0):
+    return GradReverse.apply(x, alpha)

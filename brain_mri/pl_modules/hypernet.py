@@ -243,8 +243,8 @@ class DomainConditionedBrainAgeLitModule(pl.LightningModule):
             self.log(f"val_{metric_name}", metric, prog_bar=metric_name == "mae", on_step=True, on_epoch=False)
         if not self.sanity_check:
             self.val_acc(domain_logits, domain)
-            self.val_domain_labels.append(domain.detach())
-            self.val_domain_preds.append(domain_logits.argmax(1).detach())
+            self.val_domain_labels.append(domain.detach().cpu())
+            self.val_domain_preds.append(domain_logits.argmax(1).detach().cpu())
             self.log("val_acc", self.val_acc)
 
     def on_validation_epoch_end(self):
@@ -254,7 +254,7 @@ class DomainConditionedBrainAgeLitModule(pl.LightningModule):
             self.log("val_acc_epoch", self.val_acc)
             if self.current_epoch % 10 == 0:
                 # log confusion matrix
-                val_domain_labels = torch.cat(self.val_domain_labels).cpu().numpy()
+                val_domain_labels = torch.cat(self.val_domain_labels).numpy()
                 val_domain_preds = torch.cat(self.val_domain_preds).cpu().numpy()
 
                 if isinstance(self.logger, WandbLogger):

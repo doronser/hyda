@@ -7,7 +7,7 @@ trainer:
 #  precision: 'bf16-mixed'
   accelerator: "gpu"
   devices:
-    - 1
+    - 2
   logger:
     class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
@@ -38,8 +38,10 @@ chkpt_callback:
 model:
   class_path: chest_xray.pl_modules.CXRMDAN
   init_args:
-    target_domain: VinBrain # NIH CheXpert VinBrain
-    lr: 0.001
+    target_domain: # NIH CheXpert VinBrain
+    gamma: 1 # temperature for
+    mu: 0.01 # domain loss weight
+    lr: 0.0001
     min_lr: 1e-6
     w_decay: 0.05 #  0.05
     task_weights: # calculated from the training set
@@ -62,7 +64,7 @@ data:
 #    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
     data_dir: "/raid/data/shared_datasets/chest_xray/"
     unique_patients: False
-    target_domain: VinBrain # NIH CheXpert VinBrain
-    use_sampler: True
+    target_domain: # NIH CheXpert VinBrain
+    use_sampler: False
     batch_size: 32
     num_workers: 16
