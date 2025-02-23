@@ -1,0 +1,11 @@
+torch>=2.0.0
+torchvision>=0.15.0
+lightning>=2.0.0
+wandb
+PyYAML
+numpy
+pandas
+pillow
+scikit-learn
+tqdm
+
