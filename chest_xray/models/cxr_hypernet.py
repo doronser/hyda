@@ -1,9 +1,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import torchxrayvision as xrv
 
-from hyda.layers import HyperLinearBMM, HyperGroupedConv
+from hyda.layers import HyperLinearBMM
 from ..models import CXRDenseNet
 
 class HyDenseNet(CXRDenseNet):

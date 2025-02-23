@@ -3,7 +3,6 @@ import monai
 import torch
 import numpy as np
 import pandas as pd
-from scipy import stats
 from typing import List, Literal
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader

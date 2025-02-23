@@ -1,6 +1,10 @@
 torch>=2.0.0
 torchvision>=0.15.0
 lightning>=2.0.0
+pytorch_metric_learning # for multi-similarity loss
+torchxrayvision # for CXR datasets
+monai # for MRI augmentations
+argparse
 wandb
 PyYAML
 numpy

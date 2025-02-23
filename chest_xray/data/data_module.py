@@ -2,7 +2,6 @@ import os
 import numpy as np
 import lightning as pl
 import torchxrayvision as xrv
-# import torchvision.transforms.v2 as tforms
 import torchvision.transforms as tforms
 from typing import Optional
 from torch.utils.data import DataLoader

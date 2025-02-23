@@ -1,13 +1,11 @@
 import torch
-import pandas as pd
 from torch import nn
 import lightning as pl
 import torchxrayvision as xrv
-from torchmetrics.classification import MultilabelAUROC
 from torchmetrics.functional.classification import multilabel_auroc
 
 
-from ..models.loss import MultiLabelClassificationLoss, MultiLabelClassificationLoss2
+from ..models.loss import MultiLabelClassificationLoss
 
 
 class CXRLitModule(pl.LightningModule):

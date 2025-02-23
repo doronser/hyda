@@ -1,5 +1,4 @@
 import torch
-import pandas as pd
 import wandb
 from torch import nn
 import lightning as pl

@@ -26,20 +26,4 @@ class MultiLabelClassificationLoss(nn.Module):
                 total_loss += loss
         return total_loss
 
-class MultiLabelClassificationLoss2(nn.Module):
-    """Weighted Binary Cross Entropy Loss for multi-label classification"""
-    def __init__(self, weights=None):
-        super().__init__()
-        self.criterion = nn.BCEWithLogitsLoss(reduction='none')
-        if weights is not None:
-            weights = torch.tensor(weights).float()
-            self.register_buffer('weights', weights)
-
-    def forward(self, logits, labels):
-        unreduced_loss = self.criterion(logits, labels)
-        class_loss = unreduced_loss.nanmean(0) # average loss per class
-        if hasattr(self, 'weights'): # apply class weights
-            class_loss = class_loss * self.weights
-        return class_loss.nanmean()
-
 

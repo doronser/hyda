@@ -1,7 +1,6 @@
 import torch
 import torchvision
 from torch import nn
-import torchxrayvision as xrv
 import torch.nn.functional as F
 from torchxrayvision.models import DenseNet
 
