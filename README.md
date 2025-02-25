@@ -1,6 +1,6 @@
 # HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images
 
-This repository contains the official implementation of the MICCAI 2025 paper: "HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images".
+This repository contains the official implementation of the paper: "HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images".
 
 <p align="center">
   <img src="assets/hyda_overview.png" alt="HyDA Architecture" width="800"/>
