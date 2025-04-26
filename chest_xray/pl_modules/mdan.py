@@ -9,7 +9,7 @@ from torchmetrics.functional.classification import multilabel_auroc
 
 from hyda.layers import grad_reverse
 from ..data.dataset import DOMAIN_ENUM, DOMAINS
-from ..models.loss import MultiLabelClassificationLoss, MultiLabelClassificationLoss2
+from ..models.loss import MultiLabelClassificationLoss
 
 
 class CXRMDAN(pl.LightningModule):
