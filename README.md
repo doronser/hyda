@@ -7,9 +7,6 @@ This repository contains the official implementation of the paper: "HyDA: Hypern
   <a href='https://arxiv.org/abs/2503.04979' style='padding-left: 0.5rem;'>
     <img src='https://img.shields.io/badge/arXiv-2503.04979-brightgreen' alt='arXiv'>
   </a>
-  <a href='https://www.sciencedirect.com/science/article/pii/S1361841525000519' style='padding-left: 0.5rem;'>
-    <img src='https://img.shields.io/badge/Media.Journal-2025.103503-red' alt='Media Journal'>
-  </a>
 </p>
 <p align="center">
   <img src="assets/hyda_overview.png" alt="HyDA Architecture" width="800"/>
