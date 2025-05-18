@@ -3,8 +3,7 @@ experiment_name: "baseline_hyda"
 trainer:
   fast_dev_run: False
   max_epochs: 150
-#  precision: '16-mixed'
-  precision: 'bf16-mixed'
+  precision: 'bf16-mixed' # '16-mixed'
   accelerator: "gpu"
   devices:
     - 0
@@ -14,7 +13,6 @@ trainer:
       project: "mri_uda"
       name:
       tags:
-        - lee
         - baseline
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
@@ -55,9 +53,8 @@ model:
 data:
   class_path: brain_mri.data.MRIDataModule
   init_args:
-#    data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
-    data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
-    target_domain: 'UCLA_LA5c' #'ixi'#'UCLA_LA5c' #"AIBL"
+    data_dir: <YOUR_DATA_DIR>
+    target_domain: <DOMAIN_NAME>
     ages:
       - 0
       - 100

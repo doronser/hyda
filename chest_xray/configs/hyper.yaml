@@ -4,8 +4,7 @@ trainer:
   fast_dev_run: False
   detect_anomaly: False
   max_epochs: 150
-  precision: '16-mixed'
-#  precision: 'bf16-mixed'
+  precision: '16-mixed' # 'bf16-mixed'
   accelerator: "gpu"
   devices:
     - 3
@@ -57,10 +56,7 @@ model:
 
     # domain branch
     target_domain: # NIH CheXpert VinBrain
-    # cxr_dom_clf_nih/cxr_dom_clf_nih_epoch=035.ckpt
-    # cxr_dom_clf_chexpert/cxr_dom_clf_chexpert_epoch=038.ckpt
-    # cxr_dom_clf_vin/cxr_dom_clf_vin_epoch=043.ckpt
-    dom_clf_ckpt: /raid/data/users/doronser/ckpts/cxr_dom_clf_chexpert/cxr_dom_clf_chexpert_epoch=038.ckpt
+    dom_clf_ckpt: <CKPT_PATH>
     domain_encoder:
       class_path: chest_xray.models.domain_classifier.NaiveEncoder
       init_args:
@@ -70,13 +66,13 @@ model:
     domain_classifier:
       class_path: chest_xray.models.domain_classifier.NaiveClassifier
       init_args:
-        num_classes: 2
+        num_classes: 3
 
     # hypernetwork
     hyper_in_size: 64
     hyper_emb: 32
     init_method: 'uniform' # uniform normal
-    input_var:  0.11 # input CXR var: ??? domain embeddings var: 0.11ds
+    input_var:  0.11 # input CXR var: ??? domain embeddings var: 0.11
 
 
 
@@ -84,8 +80,7 @@ model:
 data:
   class_path: chest_xray.data.CXRDataModule
   init_args:
-#    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
-    data_dir: "/raid/data/shared_datasets/chest_xray/"
+    data_dir: <DATA_DIR>
     unique_patients: False
     target_domain: # NIH CheXpert VinBrain
     batch_size: 32

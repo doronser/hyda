@@ -1,11 +1,10 @@
-experiment_name: "hypernetwork"
+experiment_name: "hyda"
 
 trainer:
   fast_dev_run: False
   detect_anomaly: False
   max_epochs: 150
-#  precision: '16-mixed'
-  precision: 'bf16-mixed'
+  precision: 'bf16-mixed' # '16-mixed'
   accelerator: "gpu"
   devices:
     - 0
@@ -33,15 +32,14 @@ chkpt_callback:
 model:
   class_path: brain_mri.pl_modules.DomainConditionedBrainAgeLitModule
   init_args:
-    dom_clf_ckpt: #'/gpfs0/tamyr/users/doronser/ckpts/dom_clf_ixi/dom_clf_ixi_epoch=029.ckpt'
+    dom_clf_ckpt: <CKPT_PATH>
     lr: 0.0001
     w_decay: 0.1
-    target_domain: "ADNI"
+    target_domain: <DOMAIN_NAME>
     use_dom_clf_feats: True
     freeze_domain_encoder: False
     msim_loss_weight: 2
     sanity_check: False
-    # good target domains: ixi, NKI, Camcan, UCLA_LA5c, PPMI, ADNIOD
 
     age_encoder:
       class_path: brain_mri.models.brain_age.AgeEncoder
@@ -94,9 +92,8 @@ model:
 data:
     class_path: brain_mri.data.MRIDataModule
     init_args:
-    #  data_dir: "/raid/data/users/yaminlee/Data/BrainAge/data"
-      data_dir: "/gpfs0/tamyr/users/doronser/data/brain_age"
-      target_domain: "ADNI" #"Oasis" #"AIBL"
+      data_dir: <YOUR_DATA_DIR>
+      target_domain: <DOMAIN_NAME>
       ages:
         - 0 #21
         - 100 #80

@@ -1,10 +1,9 @@
-experiment_name: "baseline_hyda"
+experiment_name: "baseline"
 
 trainer:
   fast_dev_run: False
   max_epochs: 150
-  precision: '16-mixed'
-#  precision: 'bf16-mixed'
+  precision: 'bf16-mixed' #  '16-mixed'
   accelerator: "gpu"
   devices:
     - 1
@@ -58,8 +57,7 @@ model:
 data:
   class_path: chest_xray.data.CXRDataModule
   init_args:
-#    data_dir: "/gpfs0/tamyr/projects/data/chest_xray"
-    data_dir: "/raid/data/shared_datasets/chest_xray/"
+    data_dir: <YOUR_DATA_DIR>
     unique_patients: False
     target_domain: # NIH CheXpert VinBrain
     batch_size: 32
