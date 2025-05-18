@@ -1,7 +1,16 @@
-# HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images
+# HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis
 
-This repository contains the official implementation of the paper: "HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images".
+This repository contains the official implementation of the paper: "HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis".
 
+
+<p align="center">
+  <a href='https://arxiv.org/abs/2503.04979' style='padding-left: 0.5rem;'>
+    <img src='https://img.shields.io/badge/arXiv-2503.04979-brightgreen' alt='arXiv'>
+  </a>
+  <a href='https://www.sciencedirect.com/science/article/pii/S1361841525000519' style='padding-left: 0.5rem;'>
+    <img src='https://img.shields.io/badge/Media.Journal-2025.103503-red' alt='Media Journal'>
+  </a>
+</p>
 <p align="center">
   <img src="assets/hyda_overview.png" alt="HyDA Architecture" width="800"/>
 </p>
@@ -109,9 +118,11 @@ python train.py fit -c brain_mri/configs/hyda.yaml \
 If you find this work useful, please cite our paper:
 
 ```bibtex
-@inproceedings{hyda2025,
-    title={HyDA: A Hypernetwork Framework for Unsupervised Domain Adaptation for Medical Images},
-    author={Doron Serebro and Tammy Riklin Raviv},
+@article{serebro2025hyda,
+  title={HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis},
+  author={Serebro, Doron and Riklin-Raviv, Tammy},
+  journal={arXiv preprint arXiv:2503.04979},
+  year={2025}
 }
 ```
 
