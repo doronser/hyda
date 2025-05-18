@@ -1,0 +1,82 @@
+experiment_name: "digits_hyda"
+
+trainer:
+  fast_dev_run: False
+  detect_anomaly: False
+  max_epochs: 150
+  precision: '16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 0
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "digits_uda"
+      name:
+      tags:
+        - hyper
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: "val_loss"
+        patience: 10
+        mode: "min"
+        verbose: True
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+
+model:
+  class_path: digits.pl_modules.DomainConditionedDigitsLitModule
+  init_args:
+    lr: 0.0001
+    min_lr: 1e-6
+    w_decay: 0.05 #  0.05
+    msim_loss_weight: 2
+    use_aux_msim_loss: True
+
+    # primary network
+    in_channels: 1
+    num_classes: 10
+
+    # domain branch
+    target_domain: MNIST-M # MNIST, MNIST-M, SVHN, USPS
+#    dom_clf_ckpt: '/raid/data/users/doronser/ckpts/digits_dom_clf_mnist/digits_dom_clf_mnist_epoch=003.ckpt'
+#    dom_clf_ckpt: '/raid/data/users/doronser/ckpts/digits_dom_clf_usps/digits_dom_clf_usps_epoch=004.ckpt'
+    dom_clf_ckpt: '/raid/data/users/doronser/ckpts/digits_dom_clf_mnist_m/digits_dom_clf_mnist_m_epoch=009.ckpt'
+    domain_encoder:
+      class_path: digits.models.NaiveEncoder
+      init_args:
+        activation: "ReLU"
+        norm_layer: "BatchNorm2d"
+
+    domain_classifier:
+      class_path: digits.models.NaiveClassifier
+      init_args:
+        num_classes: 3
+
+    # hypernetwork
+    hyper_in_size: 64
+    hyper_emb: 32
+    init_method: 'uniform' # uniform normal
+    input_var:  0.5
+
+
+
+
+data:
+  class_path: digits.data.DigitsDataModule
+  init_args:
+    data_dir: "/raid/data/shared_datasets/digits/"
+    target_domain: MNIST-M # MNIST, MNIST-M, SVHN, USPS
+    batch_size: 64
+    num_workers: 8

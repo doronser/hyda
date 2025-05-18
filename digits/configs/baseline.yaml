@@ -1,0 +1,58 @@
+experiment_name: "digits_baseline"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 150
+  precision: '16-mixed'
+#  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 2
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "digits_uda"
+      name:
+      tags:
+        - baseline
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: "val_loss"
+        patience: 10
+        mode: "min"
+        verbose: True
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+
+model:
+  class_path: digits.pl_modules.DigitsLitModule
+  init_args:
+    lr: 0.001
+    min_lr: 1e-6
+    w_decay: 0.005 #  0.05
+    model:
+      class_path: digits.models.DigitsResNet26
+      init_args:
+        in_channels: 1
+        num_classes: 10
+
+
+
+data:
+  class_path: digits.data.DigitsDataModule
+  init_args:
+    data_dir: "/raid/data/shared_datasets/digits/"
+    target_domain: MNIST-M # MNIST, MNIST-M, SVHN, USPS
+    batch_size: 64
+    num_workers: 8

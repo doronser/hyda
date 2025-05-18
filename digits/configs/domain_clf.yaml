@@ -1,0 +1,54 @@
+experiment_name: "digits_dom_clf"
+
+trainer:
+  fast_dev_run: False
+  max_epochs: 10
+  precision: '16-mixed'
+#  precision: 'bf16-mixed'
+  accelerator: "gpu"
+  devices:
+    - 0
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: "digits_uda"
+      name:
+      tags:
+        - domain_clf
+
+chkpt_callback:
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    dirpath:
+    filename:
+
+model:
+  class_path: digits.pl_modules.DigitsDomainClassifier
+  init_args:
+    lr: 0.001
+    w_decay: 0.05
+    alpha: 2
+    msim_on_embeddings: True
+    target_domain: # MNIST, MNIST-M, SVHN, USPS
+
+
+    encoder:
+      class_path: digits.models.NaiveEncoder
+      init_args:
+        activation: "ReLU"
+        norm_layer: "BatchNorm2d"
+
+    classifier:
+      class_path: digits.models.NaiveClassifier
+      init_args:
+        num_classes: 3
+
+
+data:
+  class_path: digits.data.DigitsDataModule
+  init_args:
+    data_dir: "/raid/data/shared_datasets/digits/"
+    target_domain: # MNIST, MNIST-M, SVHN, USPS
+    batch_size: 64
+    num_workers: 8
