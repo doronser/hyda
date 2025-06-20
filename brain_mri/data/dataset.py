@@ -264,7 +264,7 @@ class MRIDataset(Dataset):
 if __name__ == "__main__":
     from tqdm import tqdm
 
-    src_data_dir = "/raid/data/users/yaminlee/Data/BrainAge/data"
+    src_data_dir = "<PLACEHOLDER_DATA_DIR>"
     train_data_dir = os.path.join(src_data_dir, "train")
     train_metadata_path = os.path.join(src_data_dir, "train_metadata.csv")
     train_dataset = MRIDataset(

@@ -57,7 +57,7 @@ def eval_tent(dataloader, ckpt_path, steps=10, episodic=True, lr=1e-3, device='c
 
 if __name__ == '__main__':
     # load data
-    base_dir = '/raid/data/shared_datasets/chest_xray/'
+    base_dir = '<PLACEHOLDER_DATA_DIR>'
     dm = CXRDataModule(data_dir=base_dir, target_domain=None, batch_size=32, num_workers=16, unique_patients=False)
     dm.setup()
     nih_ds, chx_ds, vin_ds = dm.val_dataset.datasets
@@ -67,9 +67,9 @@ if __name__ == '__main__':
 
 
     # model ckpts
-    nih_ckpt = '/raid/data/users/doronser/ckpts/cxr_baseline_nih/cxr_baseline_nih_epoch=030.ckpt'
-    chx_ckpt = '/raid/data/users/doronser/ckpts/cxr_baseline_chexpert/cxr_baseline_chexpert_epoch=032.ckpt'
-    vin_ckpt = '/raid/data/users/doronser/ckpts/cxr_baseline_vin/cxr_baseline_vin_epoch=024.ckpt'
+    nih_ckpt = '<PLACEHOLDER_CKPT_DIR>/cxr_baseline_nih.ckpt'
+    chx_ckpt = '<PLACEHOLDER_CKPT_DIR>/cxr_baseline_chexpert.ckpt'
+    vin_ckpt = '<PLACEHOLDER_CKPT_DIR>/cxr_baseline_vin.ckpt'
     tent_dict = dict(NIH=[nih_dl, nih_ckpt],
                      CheXpert=[chx_dl, chx_ckpt],
                      VinDr=[vin_dl, vin_ckpt])
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # evaluate
     dfs = []
     for ds_name, ds_args in tent_dict.items():
-        df = eval_tent(*ds_args, steps=10, episodic=False, lr=1e-4, device='cuda:3')
+        df = eval_tent(*ds_args, steps=10, episodic=False, lr=1e-4, device='cuda:0')
         df['dataset'] = ds_name
         dfs.append(df)
 

@@ -26,7 +26,7 @@ The architecture is designed to handle different medical imaging tasks, includin
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/hyda.git
+git clone https://github.com/doronser/hyda.git
 cd hyda
 
 # Create a conda environment
@@ -89,7 +89,7 @@ python train.py fit -c chest_xray/configs/domain_clf.yaml \
 python train.py fit -c chest_xray/configs/hyper.yaml \
     --data.init_args.target_domain CheXpert \
     --model.init_args.target_domain CheXpert
-    --model.init_args.dom_clf_ckpt <domain_classifier_checkpoint> 
+    --model.init_args.dom_clf_ckpt <domain_classifier_checkpoint>
 ```
 
 
