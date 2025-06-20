@@ -1,6 +1,6 @@
 # HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis
 
-This repository contains the official implementation of the paper: "HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis".
+This repository contains the official implementation of the MICCAI 2025 paper: "HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis".
 
 
 <p align="center">
@@ -88,13 +88,13 @@ python train.py fit -c chest_xray/configs/domain_clf.yaml \
 # Train HyDA CheXpert model
 python train.py fit -c chest_xray/configs/hyper.yaml \
     --data.init_args.target_domain CheXpert \
-    --model.init_args.target_domain CheXpert
+    --model.init_args.target_domain CheXpert \
     --model.init_args.dom_clf_ckpt <domain_classifier_checkpoint>
 ```
 
 
 ### 2. Brain MRI Age Prediction
-While the brain age data is motly publicly  available, the full pipeline for preprocessing and training is beyind the scope of this repository. Below are examples of how to train the models, given the data is prepared.
+While the brain age data is mostly publicly available, the full pipeline for preprocessing and training is beyond the scope of this repository. Below are examples of how to train the models, given the data is prepared.
 
 Train models on brain MRI scans for age prediction across different domains:
 
