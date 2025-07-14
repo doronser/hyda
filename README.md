@@ -7,6 +7,9 @@ This repository contains the official implementation of the MICCAI 2025 paper: "
   <a href='https://arxiv.org/abs/2503.04979' style='padding-left: 0.5rem;'>
     <img src='https://img.shields.io/badge/arXiv-2503.04979-brightgreen' alt='arXiv'>
   </a>
+  <a href='https://doronser.github.io/hyda-project-page/' style='padding-left: 0.5rem;'>
+    <img src='https://img.shields.io/badge/project-page-blue' alt='arXiv'>
+  </a>
 </p>
 <p align="center">
   <img src="assets/hyda_overview.png" alt="HyDA Architecture" width="800"/>
