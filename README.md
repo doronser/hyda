@@ -4,11 +4,14 @@ This repository contains the official implementation of the MICCAI 2025 paper: "
 
 
 <p align="center">
+  <a href='https://doi.org/10.1007/978-3-032-04971-1_24' style='padding-left: 0.5rem;'>
+    <img src='https://img.shields.io/badge/MICCAI2025-publication-lightblue' alt='MICCAI 2025 Publication'>
+  </a>
   <a href='https://arxiv.org/abs/2503.04979' style='padding-left: 0.5rem;'>
     <img src='https://img.shields.io/badge/arXiv-2503.04979-brightgreen' alt='arXiv'>
   </a>
   <a href='https://doronser.github.io/hyda-project-page/' style='padding-left: 0.5rem;'>
-    <img src='https://img.shields.io/badge/project-page-blue' alt='arXiv'>
+    <img src='https://img.shields.io/badge/project-page-blue' alt='Project Page'>
   </a>
 </p>
 <p align="center">
@@ -118,11 +121,15 @@ python train.py fit -c brain_mri/configs/hyda.yaml \
 If you find this work useful, please cite our paper:
 
 ```bibtex
-@article{serebro2025hyda,
-  title={HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis},
-  author={Serebro, Doron and Riklin-Raviv, Tammy},
-  journal={arXiv preprint arXiv:2503.04979},
-  year={2025}
+@InProceedings{SerDor_HyDA_MICCAI2025,
+        author = { Serebro, Doron AND Riklin-Raviv, Tammy},
+        title = { { HyDA: Hypernetworks for Test Time Domain Adaptation in Medical Imaging Analysis } },
+        booktitle = {proceedings of Medical Image Computing and Computer Assisted Intervention -- MICCAI 2025},
+        year = {2025},
+        publisher = {Springer Nature Switzerland},
+        volume = {LNCS 15964},
+        month = {September},
+        page = {251 -- 261}
 }
 ```
 
